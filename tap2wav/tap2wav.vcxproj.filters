@@ -15,24 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mtap.c">
+    <ClCompile Include="..\mtap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pcmwav.c">
+    <ClCompile Include="..\pcmwav.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tap2wav.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wav2tap.c">
+    <ClCompile Include="..\wav2tap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mtap.h">
+    <ClInclude Include="..\mtap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pcmwav.h">
+    <ClInclude Include="..\pcmwav.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

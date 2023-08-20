@@ -98,6 +98,7 @@ static unsigned char *buffer, *buffer_end;
 static FILE *fpin, *fpout;
 static unsigned int pulsestat[256];
 static unsigned int mtap_frequency;
+static unsigned int edge;
 
 typedef void (*tap_interpreters)(unsigned char byte);
 static void _interpret_v0_byte(unsigned char byte);
@@ -142,7 +143,6 @@ static void wave_out(unsigned int count, unsigned char *out)
 {
 	if (wave.nBitsPerSample == 1) {
 		static unsigned int bitcount = 1;
-		static unsigned int edge = 1;
 		for (unsigned int i = 0; i < count; i++) {
 			bitcount = (bitcount << 1) | edge;
 			if (bitcount & 0x100) {
@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 	if (argc < 3) {
 		fprintf(stderr, "\n%s\n", COPYRIGHT_NOTICE);
 		fprintf(stderr, "Usage: tap2wav <tapfile> <outputfile> [options]\n"
-						"		-b		 : generate special 1-bit WAV (more efficient than MTAP)\n"
+						"       -b       : generate special 1-bit WAV (more efficient than MTAP)\n"
 						"       -c FRQ   : set high pass filter cutoff to 'FRQ' (default: 400 Hz)\n"
 						"       -f FRQ   : change sample frequency to 'FRQ' (default: 44100)\n"
 						"       -g GAIN  : change amplitude to 'GAIN' (default: 192)\n"
@@ -460,6 +460,7 @@ int main(int argc, char *argv[])
 	}
 	fwrite( &wave, sizeof(wave), 1, fpout);
 	data_length = 0;
+	edge = options.invert_signal ? 0 : 1;
 
 	buffer_end = tap.data + tap.size;
 	// do the conversion
