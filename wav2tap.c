@@ -39,7 +39,6 @@ static unsigned char	threshold = 0;
 static int				quiet = 0, nooverwrite = 0;
 static char			    outfname[_MAX_FNAME];
 static int				prompt = 0;
-static int				dontabort = 0;
 static int              invert_input = 0;
 static unsigned int     decode_method = 0;
 static int				split_tape = 0;
@@ -259,7 +258,6 @@ static void usage(void)
 	fprintf(stderr,
 		"    Usage:  wav2tap [flags] input-file\n\n"
 
-		"        -d           don't abort batch if user skips the conversion of one file\n"
 		"        -h           display this help\n"
 		"        -i           invert input signal\n"
 		"        -m <value>   signal detection method (0: combined (default) 1: hysteresis only 2: difference only\n"
@@ -296,9 +294,6 @@ int main(int argc, char *argv[]) {
 					return 0;
 				case 'q':
 					quiet = 1;
-					break;
-				case 'd':
-					dontabort = 1;
 					break;
                 case 'i':
                     invert_input = 1;
