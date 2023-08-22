@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+#include <limits.h>
 #include "mtap.h"
 
 #pragma pack (1)
@@ -40,7 +41,7 @@ static double tap_frequency;
 static FILE *tapfile = NULL;
 static unsigned int pulsestat[256];
 static unsigned int pulsecount;
-static char tapname[_MAX_FNAME];
+static char tapname[PATH_MAX];
 static unsigned int chunks = 0;
 
 /* create tap file and return 0 on success */
@@ -68,7 +69,7 @@ int mtap_create(const char *filename, int noow)
 
 int mtap_new_chunk(unsigned int cnt)
 {
-	char newname[_MAX_FNAME];
+	char newname[PATH_MAX];
 	char *name = strrchr(tapname, '.');
 	
 	*name = '\0';

@@ -24,6 +24,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <limits.h>
 #include "pcmwav.h"
 #include "mtap.h"
 
@@ -37,14 +38,14 @@ static size_t			iobufsize = 10000000;
 static pcmwavfile		pwf;
 static unsigned char	threshold = 0;
 static int				quiet = 0, nooverwrite = 0;
-static char			    outfname[_MAX_FNAME];
+static char			    outfname[PATH_MAX];
 static int				prompt = 0;
 static int              invert_input = 0;
 static unsigned int     decode_method = 0;
 static int				split_tape = 0;
 unsigned char			hdrbuf[16384];
 
-static unsigned long passthrough(void);
+static unsigned int passthrough(void);
 static int process_file(const char *fname, const char *outfname);
 
 static int iirFilter(unsigned char in)
@@ -124,14 +125,14 @@ static void decode_sample(int sample, int threshold, unsigned char *bit)
     previous_sample = sample;
 }
 
-static unsigned long passthrough(void)
+static unsigned int passthrough(void)
 {
-	unsigned long	readn, i, bitcount;
+	unsigned int	readn, i, bitcount;
 	unsigned char bit = 0, prevbit = 0;
     double pulselen = 0.0;
     unsigned int pulsecount = 0;
 
-	readn = (unsigned long) iobufsize;
+	readn = (unsigned int) iobufsize;
 	if (pwf.ndatabytes < iobufsize)
 		readn = pwf.ndatabytes;
 

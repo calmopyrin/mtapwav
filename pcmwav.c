@@ -26,7 +26,7 @@ int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
 	fmt_sub		fmt;
 	size_t		nread;
 	char		have_fmt = 0;
-	unsigned long	subchunk, subchunk_size;
+	unsigned int	subchunk, subchunk_size;
 
 	opwf->winfile = fopen(fname, access);
 	if (opwf->winfile == 0) {
@@ -111,14 +111,14 @@ int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
 	return 1;
 }
 
-int pcmwav_read(pcmwavfile *pwf, void *buf, unsigned long len)
+int pcmwav_read(pcmwavfile *pwf, void *buf, size_t len)
 {
 	size_t nread;
 
 	nread = fread(buf, 1, len, pwf->winfile);
 
 	if (nread != len) {
-		sprintf(pcmwav_error, "Error in pcmwav_read(); only read %llu instead of %lu bytes.",
+		sprintf(pcmwav_error, "Error in pcmwav_read(); only read %zu instead of %zu bytes.",
 			nread, len);
 		return 0;
 	}
@@ -126,14 +126,14 @@ int pcmwav_read(pcmwavfile *pwf, void *buf, unsigned long len)
 	return 1;
 }
 
-int pcmwav_write(pcmwavfile *pwf, void *buf, unsigned long len)
+int pcmwav_write(pcmwavfile *pwf, void *buf, size_t len)
 {
 	size_t nwritten;
 
 	nwritten = fread(buf, 1, len, pwf->winfile);
 
 	if (nwritten != len) {
-		sprintf(pcmwav_error, "Error in pcmwav_write(); only wrote %llu instead of %lu bytes.",
+		sprintf(pcmwav_error, "Error in pcmwav_write(); only wrote %zu instead of %zu bytes.",
 			nwritten, len);
 		return 0;
 	}
@@ -151,10 +151,10 @@ int pcmwav_rewind(pcmwavfile *pwf)
 	return 1;
 }
 
-int pcmwav_seek(pcmwavfile *pwf, long pos)
+int pcmwav_seek(pcmwavfile *pwf, size_t pos)
 {
 	if (fseek(pwf->winfile, pos, SEEK_CUR)) {
-		sprintf(pcmwav_error, "Error in pcmwav_seek() - pos = %ld", pos);
+		sprintf(pcmwav_error, "Error in pcmwav_seek() - pos = %zu", pos);
 		return 0;
 	}
 

@@ -25,10 +25,6 @@
 #include <limits.h>
 #include "mtap.h"
 
-#ifndef PATH_MAX
-#define PATH_MAX _MAX_PATH
-#endif
-
 #define COPYRIGHT_NOTICE	"tap2wav v1.3 (C) 2003, 2016, 2023 by A Grosz\n" \
 							"Commodore MTAP tape image to PCM WAV converter\n"
 

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif
+
 /* #define's from Markus Brenner's MTAP */
 /* The following frequencies in [Hz] determine the length of one TAP unit */
 #define C64PALFREQ  123156      /*  985248 / 8 */
