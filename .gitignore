@@ -400,3 +400,5 @@ FodyWeavers.xsd
 *.tap
 *.wav
 *.tap
+mtap2wav
+wav2mtap
