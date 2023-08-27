@@ -33,7 +33,7 @@
 
 #define SIGN(T) ((0 < T) - (T < 0))
 
-static unsigned char	*buf;
+static unsigned char* buf;
 static size_t			iobufsize = 10000000;
 static pcmwavfile		pwf;
 static unsigned char	threshold = 0;
@@ -46,7 +46,7 @@ static int				split_tape = 0;
 unsigned char			hdrbuf[16384];
 
 static unsigned int passthrough(void);
-static int process_file(const char *fname, const char *outfname);
+static int process_file(const char* fname, const char* outfname);
 
 static int iirFilter(unsigned char in)
 {
@@ -63,76 +63,78 @@ static int iirFilter(unsigned char in)
 }
 
 // in: wave sample; out : decoded bit
-static void decode_sample(int sample, int threshold, unsigned char *bit)
+static void decode_sample(int sample, int threshold, unsigned char* bit)
 {
-    static int previous_sample = 0;
+	static int previous_sample = 0;
 	static int previous_change = 0;
 	int mythreshold;
 	int change = sample - previous_sample;
 
-    switch (decode_method) {
-        default:
-        case 0: // combined
-			mythreshold = (128 * threshold) / 100;
-            if (sample > 0x80 + mythreshold && (change >= 8)) {
-                *bit = 1;
-            } else if (sample <= 0x7F - mythreshold && (change <= -8)) {
-                *bit = 0;
-            }
-			break;
-        case 1: // hysteresis only
-			mythreshold = (128 * threshold) / 100;
-            if (sample > 0x80 + mythreshold) {
-                *bit = 1;
-            } else if (sample <= 0x7F - mythreshold) {
-                *bit = 0;
-            }
-            break;
-        case 2: // edge detect only
-            if (abs(change) > threshold)
-                *bit ^= 1;
-			break;
-		case 3: // sign change detect
-			if ( ((previous_sample > 0x80 && sample <= 0x7F) || (sample > 0x80 && previous_sample <= 0x7F))
-				&& abs(change) > threshold)
-				*bit ^= 1;
-			break;
-		case 4: // edge detection
-			{
-				static int lastMax = 0, lastMin = 0;
-				unsigned int edgeDetected = 0;
+	switch (decode_method) {
+	default:
+	case 0: // combined
+		mythreshold = (128 * threshold) / 100;
+		if (sample > 0x80 + mythreshold && (change >= 8)) {
+			*bit = 1;
+		}
+		else if (sample <= 0x7F - mythreshold && (change <= -8)) {
+			*bit = 0;
+		}
+		break;
+	case 1: // hysteresis only
+		mythreshold = (128 * threshold) / 100;
+		if (sample > 0x80 + mythreshold) {
+			*bit = 1;
+		}
+		else if (sample <= 0x7F - mythreshold) {
+			*bit = 0;
+		}
+		break;
+	case 2: // edge detect only
+		if (abs(change) > threshold)
+			*bit ^= 1;
+		break;
+	case 3: // sign change detect
+		if (((previous_sample > 0x80 && sample <= 0x7F) || (sample > 0x80 && previous_sample <= 0x7F))
+			&& abs(change) > threshold)
+			*bit ^= 1;
+		break;
+	case 4: // edge detection
+	{
+		static int lastMax = 0, lastMin = 0;
+		unsigned int edgeDetected = 0;
 
-				if (change <= 0 && previous_change > 0) {
-					// new local high
-					lastMax = sample;
-					const int mythreshold = (threshold * 240) / 255;
-					if ((lastMax - lastMin) > mythreshold) {
-						*bit = 0x10;
-					}
-				}
-				else if (change >= 0 && previous_change < 0) {
-					// new local low
-					lastMin = sample;
-					const int mythreshold = (threshold * 240) / 255;
-					if ((lastMax - lastMin) > mythreshold) {
-						*bit = 0x00;
-					}
-				}
+		if (change <= 0 && previous_change > 0) {
+			// new local high
+			lastMax = sample;
+			const int mythreshold = (threshold * 240) / 255;
+			if ((lastMax - lastMin) > mythreshold) {
+				*bit = 0x10;
 			}
-			break;
-    }
+		}
+		else if (change >= 0 && previous_change < 0) {
+			// new local low
+			lastMin = sample;
+			const int mythreshold = (threshold * 240) / 255;
+			if ((lastMax - lastMin) > mythreshold) {
+				*bit = 0x00;
+			}
+		}
+	}
+	break;
+	}
 	previous_change = change;
-    previous_sample = sample;
+	previous_sample = sample;
 }
 
 static unsigned int passthrough(void)
 {
 	unsigned int	readn, i, bitcount;
 	unsigned char bit = 0, prevbit = 0;
-    double pulselen = 0.0;
-    unsigned int pulsecount = 0;
+	double pulselen = 0.0;
+	unsigned int pulsecount = 0;
 
-	readn = (unsigned int) iobufsize;
+	readn = (unsigned int)iobufsize;
 	if (pwf.ndatabytes < iobufsize)
 		readn = pwf.ndatabytes;
 
@@ -146,61 +148,61 @@ static unsigned int passthrough(void)
 	bitcount = 1;
 
 	while (i < readn) {
-		switch(pwf.bitspersample) {
-			case 1:
-				{
-					unsigned char in;
+		switch (pwf.bitspersample) {
+		case 1:
+		{
+			unsigned char in;
 
-					in = (*((unsigned char*)buf + i)) ^ (invert_input ? 0xFF : 0x00);
-					while (bitcount <= 8) {
-						bit = (in >> (8 - bitcount)) & 1;
-						if (prevbit ^ bit) {
-							pulselen = mtap_write_pulse(pulselen, split_tape);
-                            pulsecount++;
-                            prevbit = bit;
-						}
-                        pulselen += 1.0f / (double)(pwf.samplerate);
-					}
+			in = (*((unsigned char*)buf + i)) ^ (invert_input ? 0xFF : 0x00);
+			while (bitcount <= 8) {
+				bit = (in >> (8 - bitcount)) & 1;
+				if (prevbit ^ bit) {
+					pulselen = mtap_write_pulse(pulselen, split_tape);
+					pulsecount++;
+					prevbit = bit;
 				}
-				break;
-			case 8:
-				{
-				    unsigned char byte = ((*(buf + i)) ^ (invert_input ? 0xFF : 0x00));
-					
-					decode_sample(byte, threshold, &bit);
+				pulselen += 1.0f / (double)(pwf.samplerate);
+			}
+		}
+		break;
+		case 8:
+		{
+			unsigned char byte = ((*(buf + i)) ^ (invert_input ? 0xFF : 0x00));
 
-                    if (prevbit ^ bit) {
-						pulselen = mtap_write_pulse(pulselen, split_tape);
-                        pulsecount++;
-                        prevbit = bit;
-                    }
-                    pulselen += 1.0f / (double)(pwf.samplerate);
-				}
-				break;
-			case 16:
-				{
-					short byte = (*((short*)(buf + i))) ^ (invert_input ? 0xFFFF : 0x00);
+			decode_sample(byte, threshold, &bit);
 
-					decode_sample(byte, threshold, &bit);
+			if (prevbit ^ bit) {
+				pulselen = mtap_write_pulse(pulselen, split_tape);
+				pulsecount++;
+				prevbit = bit;
+			}
+			pulselen += 1.0f / (double)(pwf.samplerate);
+		}
+		break;
+		case 16:
+		{
+			short byte = (*((short*)(buf + i))) ^ (invert_input ? 0xFFFF : 0x00);
 
-                    if (prevbit ^ bit) {
-						pulselen = mtap_write_pulse(pulselen, split_tape);
-                        pulsecount++;
-                        prevbit = bit;
-                        //pulselen = 0;
-                    }
-                    pulselen += 1.0f / (double)(pwf.samplerate);
-				}
-				break;
+			decode_sample(byte, threshold, &bit);
+
+			if (prevbit ^ bit) {
+				pulselen = mtap_write_pulse(pulselen, split_tape);
+				pulsecount++;
+				prevbit = bit;
+				//pulselen = 0;
+			}
+			pulselen += 1.0f / (double)(pwf.samplerate);
+		}
+		break;
 		}
 		i++;
 	}
 	if (!quiet)
-        fprintf(stderr, "%u pulses detected.\n", pulsecount);
+		fprintf(stderr, "%u pulses detected.\n", pulsecount);
 	return 0;
 }
 
-static int process_file(const char *fname, const char *outfname)
+static int process_file(const char* fname, const char* outfname)
 {
 	unsigned int r;
 
@@ -213,29 +215,30 @@ static int process_file(const char *fname, const char *outfname)
 	if (!quiet) {
 		fprintf(stderr, "Processing file \"%s\"\n", fname);
 	}
-    if (r = mtap_create(outfname, nooverwrite) != 0) {
-        if (!quiet)
-            fprintf(stderr, "Couldn't create output file '%s' (%u).\n", outfname, r);
-        return 1;
-    }
-    // Read headers
-    fseek(pwf.winfile, 0, SEEK_SET);
-    size_t nread = fread(hdrbuf, 1, pwf.datapos, pwf.winfile);
+	if (r = mtap_create(outfname, nooverwrite) != 0) {
+		if (!quiet)
+			fprintf(stderr, "Couldn't create output file '%s' (%u).\n", outfname, r);
+		return 1;
+	}
+	// Read headers
+	fseek(pwf.winfile, 0, SEEK_SET);
+	size_t nread = fread(hdrbuf, 1, pwf.datapos, pwf.winfile);
 
-    if (nread != pwf.datapos) {
-        if (!quiet)
-            fprintf(stderr, "Could not copy headers.\n");
-        return 1;
-    }
+	if (nread != pwf.datapos) {
+		if (!quiet)
+			fprintf(stderr, "Could not copy headers.\n");
+		return 1;
+	}
 	// Allocate buffer
-	iobufsize = *((unsigned int *) (hdrbuf + 4));
+	iobufsize = *((unsigned int*)(hdrbuf + 4));
 	buf = malloc(iobufsize < pwf.filesize ? pwf.filesize : iobufsize);
 
 	if (buf == NULL) {
 		if (!quiet)
 			fprintf(stderr, "Cannot allocate buffer in memory.\n");
 		return 1;
-	} else {
+	}
+	else {
 		if (!quiet) {
 			double minutes = (double)(pwf.ndatabytes / pwf.samplerate / (pwf.bitspersample / 8)) / 60.0;
 			fprintf(stderr, "Allocated buffer size: %zi.\n", iobufsize);
@@ -274,7 +277,7 @@ static void usage(void)
 		"	- 'input-file' needs to be a PCM WAV file.\n");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 
 	int	i;
 
@@ -290,42 +293,43 @@ int main(int argc, char *argv[]) {
 	for (i = 1; i < argc; i++) {
 		if ((argv[i][0] == '-') && (argv[i][1] != 0x00)) {
 			switch (argv[i][1]) {
-				case 'h':
-					usage();
-					return 0;
-				case 'q':
-					quiet = 1;
-					break;
-                case 'i':
-                    invert_input = 1;
-                    break;
-                case 'm':
-                    decode_method = atoi(argv[++i]);
-					if (decode_method > 4) {
-						decode_method = 0;
-						fprintf(stderr, "Illegal decoding method set to 0.\n");
-					}
-                    break;
-				case 'p':
-					prompt = 1;
-					break;
-				case 's':
-					//split_tape = 1;
-					break;
-				case 't':
-					threshold = atoi(argv[++i]);
-					if (threshold > 100) threshold = 100;
-					break;
-
-				case 'o':
-					strcpy(outfname, argv[++i]);
-					break;
-
-				default:
-					fprintf(stderr, "Error: Can't understand flag -%c. Aborting.\n", argv[i][1]);
-					return 2;
+			case 'h':
+				usage();
+				return 0;
+			case 'q':
+				quiet = 1;
+				break;
+			case 'i':
+				invert_input = 1;
+				break;
+			case 'm':
+				decode_method = atoi(argv[++i]);
+				if (decode_method > 4) {
+					decode_method = 0;
+					fprintf(stderr, "Illegal decoding method set to 0.\n");
 				}
-		} else {
+				break;
+			case 'p':
+				prompt = 1;
+				break;
+			case 's':
+				//split_tape = 1;
+				break;
+			case 't':
+				threshold = atoi(argv[++i]);
+				if (threshold > 100) threshold = 100;
+				break;
+
+			case 'o':
+				strcpy(outfname, argv[++i]);
+				break;
+
+			default:
+				fprintf(stderr, "Error: Can't understand flag -%c. Aborting.\n", argv[i][1]);
+				return 2;
+			}
+		}
+		else {
 			break;
 		}
 	}

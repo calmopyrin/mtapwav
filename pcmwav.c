@@ -20,7 +20,7 @@
 
 char pcmwav_error[256];
 
-int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
+int pcmwav_open(const char* fname, const char* access, pcmwavfile* opwf)
 {
 	RIFFhdr		rhdr;
 	fmt_sub		fmt;
@@ -55,7 +55,7 @@ int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
 	/* read subchunks until we encounter 'data' */
 	do {
 		// Read subchunk ID
-		if ( !fread(&subchunk, 1, sizeof(subchunk), opwf->winfile)) {
+		if (!fread(&subchunk, 1, sizeof(subchunk), opwf->winfile)) {
 			sprintf(pcmwav_error, "Read error: this is not a correct PCM WAV file.\n");
 			fclose(opwf->winfile);
 			return 0;
@@ -67,7 +67,7 @@ int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
 			nread = fread(&fmt, 1, sizeof(fmt), opwf->winfile);
 
 			// Check it
-			if (fmt.AudioFormat != 1 ) {
+			if (fmt.AudioFormat != 1) {
 				sprintf(pcmwav_error, "Error in format subchunk: this is not a PCM WAV file.\n");
 				fclose(opwf->winfile);
 				return 0;
@@ -86,7 +86,8 @@ int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
 				fseek(opwf->winfile, fmt.Subchunk1Size - 16, SEEK_CUR);
 
 			have_fmt = 1;
-		} else if (subchunk != 0x61746164 /* 'data' */) {
+		}
+		else if (subchunk != 0x61746164 /* 'data' */) {
 			// unknown subchunk - read size and skip
 			nread = fread(&subchunk_size, 1, sizeof(subchunk_size), opwf->winfile);
 			fseek(opwf->winfile, subchunk_size, SEEK_CUR);
@@ -111,7 +112,7 @@ int pcmwav_open(const char *fname, const char *access, pcmwavfile *opwf)
 	return 1;
 }
 
-int pcmwav_read(pcmwavfile *pwf, void *buf, size_t len)
+int pcmwav_read(pcmwavfile* pwf, void* buf, size_t len)
 {
 	size_t nread;
 
@@ -126,7 +127,7 @@ int pcmwav_read(pcmwavfile *pwf, void *buf, size_t len)
 	return 1;
 }
 
-int pcmwav_write(pcmwavfile *pwf, void *buf, size_t len)
+int pcmwav_write(pcmwavfile* pwf, void* buf, size_t len)
 {
 	size_t nwritten;
 
@@ -141,7 +142,7 @@ int pcmwav_write(pcmwavfile *pwf, void *buf, size_t len)
 	return 1;
 }
 
-int pcmwav_rewind(pcmwavfile *pwf)
+int pcmwav_rewind(pcmwavfile* pwf)
 {
 	if (fseek(pwf->winfile, pwf->datapos, SEEK_SET)) {
 		sprintf(pcmwav_error, "Error in pcmwav_rewind().");
@@ -151,7 +152,7 @@ int pcmwav_rewind(pcmwavfile *pwf)
 	return 1;
 }
 
-int pcmwav_seek(pcmwavfile *pwf, size_t pos)
+int pcmwav_seek(pcmwavfile* pwf, size_t pos)
 {
 	if (fseek(pwf->winfile, pos, SEEK_CUR)) {
 		sprintf(pcmwav_error, "Error in pcmwav_seek() - pos = %zu", pos);
@@ -161,7 +162,7 @@ int pcmwav_seek(pcmwavfile *pwf, size_t pos)
 	return 1;
 }
 
-int pcmwav_close(pcmwavfile *pwf)
+int pcmwav_close(pcmwavfile* pwf)
 {
 	fclose(pwf->winfile);
 	return 1;

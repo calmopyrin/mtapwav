@@ -28,11 +28,11 @@
 #define COPYRIGHT_NOTICE	"tap2wav v1.3 (C) 2003, 2016, 2023 by A Grosz\n" \
 							"Commodore MTAP tape image to PCM WAV converter\n"
 
-const char *machine[] = {
+const char* machine[] = {
 	"C64", "VIC-20", "C264"
 };
 
-const char *videostd[] = {
+const char* videostd[] = {
 	"PAL", "NTSC"
 };
 
@@ -90,8 +90,8 @@ static unsigned int pause;
 static unsigned int half_wave_time;
 static unsigned int halfpulse;
 static tap_image_t tap;
-static unsigned char *buffer, *buffer_end;
-static FILE *fpin, *fpout;
+static unsigned char* buffer, * buffer_end;
+static FILE* fpin, * fpout;
 static unsigned int pulsestat[256];
 static unsigned int mtap_frequency;
 static unsigned int edge;
@@ -135,7 +135,7 @@ static void wav_write(unsigned char wavbyte)
 	fputc(outByte ^ options.invert_signal, fpout);
 }
 
-static void wave_out(unsigned int count, unsigned char *out)
+static void wave_out(unsigned int count, unsigned char* out)
 {
 	if (wave.nBitsPerSample == 1) {
 		static unsigned int bitcount = 1;
@@ -165,9 +165,10 @@ static void _interpret_v0_byte(unsigned char byte)
 
 	if (byte != 0x00) {
 		half_wave_time = (long)((byte * wave.nSamplesPerSec + mtap_frequency / 2) / mtap_frequency);
-	} else {
+	}
+	else {
 		pause = ZERO;
-		for (;(*(buffer+1) == 0) && ((buffer + 1) < buffer_end); buffer++)
+		for (; (*(buffer + 1) == 0) && ((buffer + 1) < buffer_end); buffer++)
 			pause += ZERO;
 		half_wave_time = (long)(((pause >> 3) * wave.nSamplesPerSec + mtap_frequency / 2) / mtap_frequency);
 	}
@@ -185,7 +186,8 @@ static void _interpret_v1_byte(unsigned char byte)
 
 	if (byte != 0x00) {
 		half_wave_time = (long)((byte * wave.nSamplesPerSec + mtap_frequency / 2) / mtap_frequency);
-	} else {
+	}
+	else {
 		if ((buffer + 3) >= buffer_end)
 			return;
 		pause = 0;
@@ -210,7 +212,8 @@ static void _interpret_v2_byte(unsigned char byte)
 
 	if (byte != 0x00) {
 		half_wave_time = (long)((byte * wave.nSamplesPerSec + mtap_frequency / 2) / mtap_frequency);
-	} else {
+	}
+	else {
 		if ((buffer + 3) >= buffer_end)
 			return;
 		pause = 0;
@@ -227,7 +230,7 @@ static void _interpret_v2_byte(unsigned char byte)
 	data_length += half_wave_time;
 }
 
-static int freadbyte(FILE *fpin)
+static int freadbyte(FILE* fpin)
 {
 	/* read one byte from *fpin, abort if none available */
 	int c;
@@ -239,20 +242,20 @@ static int freadbyte(FILE *fpin)
 	return c;
 }
 
-static int read_tap_data(FILE *fpin, tap_image_t *tap)
+static int read_tap_data(FILE* fpin, tap_image_t* tap)
 {
 	unsigned long filelength;
 	char inputstring[MAXSTRLEN];
 	int i;
 
 	/* figure out file length */
-	fseek(fpin,0,SEEK_END);
+	fseek(fpin, 0, SEEK_END);
 	filelength = ftell(fpin);
 	rewind(fpin);
 
 	/* check "C16-TAPE-RAW" string */
 	fgets(inputstring, 13, fpin);
-	if(strncmp(inputstring+4,"TAPE-RAW",8) != 0) {
+	if (strncmp(inputstring + 4, "TAPE-RAW", 8) != 0) {
 		fprintf(stderr, "invalid or corrupt TAP file!\n");
 		exit(5);
 	}
@@ -271,26 +274,27 @@ static int read_tap_data(FILE *fpin, tap_image_t *tap)
 	if (tap->video_standard > 1) {
 		fprintf(stderr, "Illegal video standard value (%x) set to PAL.\n", tap->video_standard);
 		tap->video_standard = 0;
-	} else
+	}
+	else
 		printf("Video standard : %s\n", videostd[tap->video_standard]);
 	freadbyte(fpin);
 
-	switch(tap->machine) {
-		case VIC:
-			mtap_frequency =
-				(tap->video_standard == NTSC) ? VICNTSCFREQ : VICPALFREQ;
-			break;
-		case C264:
-			mtap_frequency =
-				(tap->video_standard == NTSC) ? C16NTSCFREQ : C16PALFREQ;
-			break;
-		case C64:
-		default:
-			mtap_frequency =
-				(tap->video_standard == NTSC) ? C64NTSCFREQ : C64PALFREQ;
-			break;
+	switch (tap->machine) {
+	case VIC:
+		mtap_frequency =
+			(tap->video_standard == NTSC) ? VICNTSCFREQ : VICPALFREQ;
+		break;
+	case C264:
+		mtap_frequency =
+			(tap->video_standard == NTSC) ? C16NTSCFREQ : C16PALFREQ;
+		break;
+	case C64:
+	default:
+		mtap_frequency =
+			(tap->video_standard == NTSC) ? C64NTSCFREQ : C64PALFREQ;
+		break;
 	}
-	printf("Tape frequency : %d\n", (mtap_frequency)<<3);
+	printf("Tape frequency : %d\n", (mtap_frequency) << 3);
 	/* read the data length */
 	for (tap->size = 0, i = 0; i < 4; i++) {
 		tap->size >>= 8;
@@ -302,7 +306,7 @@ static int read_tap_data(FILE *fpin, tap_image_t *tap)
 	unsigned int real_length = filelength - MTAP_HEADER_LEN;
 	if (tap->size != real_length) {
 		fprintf(stderr, "WARNING: file size doesn't match header (%ukb vs %ukb)!\n",
-			(unsigned int)(real_length / 1024 + 0.5), (unsigned int)(tap->size / 1024 + 0.5) );
+			(unsigned int)(real_length / 1024 + 0.5), (unsigned int)(tap->size / 1024 + 0.5));
 		if (tap->size != real_length) {
 			tap->size = real_length;
 			fprintf(stderr, "TAP size corrected to actual size.\n");
@@ -310,7 +314,7 @@ static int read_tap_data(FILE *fpin, tap_image_t *tap)
 	}
 	printf("TAP version : %d\n", tap->version);
 	/* allocate buffer for TAP data */
-	if ((tap->data = (unsigned char *) calloc(tap->size, sizeof(unsigned char))) == NULL) {
+	if ((tap->data = (unsigned char*)calloc(tap->size, sizeof(unsigned char))) == NULL) {
 		fprintf(stderr, "Couldn't allocate buffer memory!\n");
 		exit(7);
 	}
@@ -323,7 +327,7 @@ static int read_tap_data(FILE *fpin, tap_image_t *tap)
 	return -1;
 }
 
-static void tap_statistics(tap_image_t *t)
+static void tap_statistics(tap_image_t* t)
 {
 	unsigned int i;
 	unsigned int maxpulslen = 0;
@@ -354,7 +358,7 @@ static void tap_statistics(tap_image_t *t)
 		}
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	char tap_file_name[PATH_MAX];
 
@@ -363,20 +367,20 @@ int main(int argc, char *argv[])
 	if (argc < 3) {
 		fprintf(stderr, "\n%s\n", COPYRIGHT_NOTICE);
 		fprintf(stderr, "Usage: tap2wav <tapfile> <outputfile> [options]\n"
-						"       -b       : generate special 1-bit WAV (more efficient than MTAP)\n"
-						"       -c FRQ   : set high pass filter cutoff to 'FRQ' (default: 400 Hz)\n"
-						"       -f FRQ   : change sample frequency to 'FRQ' (default: 44100)\n"
-						"       -g GAIN  : change amplitude to 'GAIN' (default: 192)\n"
-						"       -i       : invert signal\n"
-						"       -n       : no DC removal filter\n"
-						"       -q       : suppress statistics\n");
+			"       -b       : generate special 1-bit WAV (more efficient than MTAP)\n"
+			"       -c FRQ   : set high pass filter cutoff to 'FRQ' (default: 400 Hz)\n"
+			"       -f FRQ   : change sample frequency to 'FRQ' (default: 44100)\n"
+			"       -g GAIN  : change amplitude to 'GAIN' (default: 192)\n"
+			"       -i       : invert signal\n"
+			"       -n       : no DC removal filter\n"
+			"       -q       : suppress statistics\n");
 		exit(1);
 	}
 
-	strcpy( tap_file_name, argv[1]);
+	strcpy(tap_file_name, argv[1]);
 
 	printf("Opening TAP file %s\n", argv[1]);
-	if ((fpin = fopen(tap_file_name,"rb")) == NULL) {
+	if ((fpin = fopen(tap_file_name, "rb")) == NULL) {
 		fprintf(stderr, "Couldn't open TAP file %s!\n", tap_file_name);
 		exit(2);
 	}
@@ -400,29 +404,34 @@ int main(int argc, char *argv[])
 			if (!strcmp(argv[i], "-i")) {
 				options.invert_signal = 0xFF;
 				printf("Inverting signal...\n");
-			} else if (!strcmp(argv[i], "-c")) {
+			}
+			else if (!strcmp(argv[i], "-c")) {
 				unsigned int new_freq;
 				if (i <= argc) {
 					sscanf(argv[++i], "%u", &new_freq);
 					if (new_freq < 10 && new_freq > 500) {
 						printf("Overriding default high pass filter cutoff frequency with %u.\n", new_freq);
 						options.cutoff = new_freq;
-					} else {
-						printf("Invalid cutoff frequency (must be between 10 and 500 Hz). Resetting to %i Hz.\n", (int) options.cutoff);
+					}
+					else {
+						printf("Invalid cutoff frequency (must be between 10 and 500 Hz). Resetting to %i Hz.\n", (int)options.cutoff);
 					}
 				}
-			} else if (!strcmp(argv[i], "-f")) {
+			}
+			else if (!strcmp(argv[i], "-f")) {
 				unsigned int new_freq;
 				if (i <= argc) {
 					sscanf(argv[++i], "%u", &new_freq);
 					if (new_freq <= 192000 && new_freq >= 8000) {
 						printf("Overriding default WAV frequency with %u.\n", new_freq);
 						wave.nAvgBytesPerSec = wave.nSamplesPerSec = new_freq;
-					} else {
+					}
+					else {
 						printf("Invalid frequency (> 192000 Hz). Resetting to %u.\n", WAVEFREQ);
 					}
 				}
-			} else if (!strcmp(argv[i], "-g")) {
+			}
+			else if (!strcmp(argv[i], "-g")) {
 				unsigned int new_gain;
 				if (i <= argc) {
 					sscanf(argv[++i], "%u", &new_gain);
@@ -434,7 +443,8 @@ int main(int argc, char *argv[])
 						printf("Invalid gain value (should be between 16 and 255). Resetting to %u.\n", GAIN);
 					}
 				}
-			} else if (!strcmp(argv[i], "-q")) {
+			}
+			else if (!strcmp(argv[i], "-q")) {
 				options.quiet = 1;
 			}
 			else if (!strcmp(argv[i], "-n")) {
@@ -449,12 +459,12 @@ int main(int argc, char *argv[])
 	if (!options.quiet)
 		tap_statistics(&tap);
 
-	printf( "Creating output file %s\n", argv[2]);
-	if ((fpout = fopen(argv[2],"wb")) == NULL) {
+	printf("Creating output file %s\n", argv[2]);
+	if ((fpout = fopen(argv[2], "wb")) == NULL) {
 		fprintf(stderr, "Couldn't create output file %s!\n", argv[2]);
 		exit(4);
 	}
-	fwrite( &wave, sizeof(wave), 1, fpout);
+	fwrite(&wave, sizeof(wave), 1, fpout);
 	data_length = 0;
 	edge = options.invert_signal ? 0 : 1;
 
@@ -462,13 +472,13 @@ int main(int argc, char *argv[])
 	// do the conversion
 	for (buffer = tap.data; buffer < buffer_end; buffer++) {
 		(interpret_tap_byte[tap.version])(*buffer);
-		if ( !((buffer_end-buffer)%32768) )
+		if (!((buffer_end - buffer) % 32768))
 			printf(".");
 	}
 	printf("\nWave data size : %d bytes\n", data_length);
 	i = ftell(fpout);
 	printf("Output file size : %d bytes\n", i);
-	
+
 	i -= 8;
 	fseek(fpout, 4, SEEK_SET);
 	fwrite(&i, 4, 1, fpout);
@@ -476,10 +486,9 @@ int main(int argc, char *argv[])
 	i = i - sizeof(wave) + 8;
 	fseek(fpout, sizeof(wave) - sizeof(unsigned int), SEEK_SET);
 	fwrite(&data_length, 4, 1, fpout);
-	
-	fclose(fpout );
+
+	fclose(fpout);
 	printf("Finished.\n");
 
 	return 0;
 }
-

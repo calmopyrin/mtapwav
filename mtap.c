@@ -38,7 +38,7 @@ double tap_frequencies[] = {
 };
 
 static double tap_frequency;
-static FILE *tapfile = NULL;
+static FILE* tapfile = NULL;
 static unsigned int pulsestat[256];
 static unsigned int pulsecount;
 static char tapname[PATH_MAX];
@@ -48,7 +48,7 @@ static unsigned int chunks = 0;
 /* 1 : error creating file */
 /* 2 : error writing header */
 /* 3 : file already exist */
-int mtap_create(const char *filename, int noow)
+int mtap_create(const char* filename, int noow)
 {
 	if (tapfile = fopen(filename, "wb")) {
 		fclose(tapfile);
@@ -70,8 +70,8 @@ int mtap_create(const char *filename, int noow)
 int mtap_new_chunk(unsigned int cnt)
 {
 	char newname[PATH_MAX];
-	char *name = strrchr(tapname, '.');
-	
+	char* name = strrchr(tapname, '.');
+
 	*name = '\0';
 	sprintf(newname, "%s%03u.tap", name, cnt);
 
@@ -125,7 +125,7 @@ double mtap_write_pulse(double length, int split)
 	// convert to TAP units
 	unsigned int len8 = (unsigned long)(length * tap_frequency + 0.5);
 	double remainder = length - len8 / tap_frequency;
-	
+
 	pulsecount += len8;
 
 	// long pulse?
@@ -149,7 +149,8 @@ double mtap_write_pulse(double length, int split)
 		} while (longpulse);
 		// count as 'zero' for the pulse statistics
 		len8 = 0;
-	} else
+	}
+	else
 		fputc(len8, tapfile);
 
 	pulsestat[len8]++;

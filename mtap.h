@@ -42,6 +42,6 @@ typedef struct _TAP_HEADER
 
 #define MTAP_HEADER_LEN (20) /* 20 - TAP format header length */
 
-extern int mtap_create(const char *filename, int noow);
+extern int mtap_create(const char* filename, int noow);
 extern double mtap_write_pulse(double length, int split);
 extern void mtap_close();
