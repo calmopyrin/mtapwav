@@ -6,7 +6,7 @@ wav2mtap:
 	gcc mtap.c pcmwav.c wav2tap.c -lm -o wav2mtap -O3
 
 mtap2wav:
-	gcc mtap.c pcmwav.c wav2tap.c -lm -o mtap2wav -O3
+	gcc mtap.c pcmwav.c tap2wav.c -lm -o mtap2wav -O3
 
 clean:
 	rm -f *.o
